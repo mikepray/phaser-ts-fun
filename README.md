@@ -1,4 +1,11 @@
 <h1 align="center">
+Docker and developing notes
+</h1>
+running in dev: npm start, connect through localhost:8080
+prod: cd into project folder, run docker build --tag (name:version) .
+docker run -p 5000:5000 phaserts:1.2
+
+<h1 align="center">
   <br>
   <a href="https://github.com/yandeu/phaser-project-template#readme"><img src="readme/header.png" alt="header" width="600"></a>
   <br>
