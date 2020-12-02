@@ -6,7 +6,9 @@ export default class PreloadScene extends Phaser.Scene {
   preload() {
     this.load.image('phaser-logo', 'assets/img/phaser-logo.png')
     this.load.image('map', 'assets/img/earthbound-scarab.png')
-    this.load.image('player-mech', 'assets/img/mechblue.png')
+    this.load.image('mech-bullet', 'assets/img/bullet7.png')
+    this.load.image('mech-feet', 'assets/img/mechfeet.png')
+    this.load.image('player-mech', 'assets/img/croppedmech.png')
   }
 
   create() {
