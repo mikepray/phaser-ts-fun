@@ -1,50 +1,56 @@
 export default class PlayerMechFeet extends Phaser.Physics.Arcade.Sprite {
 
-  maxMechSpeed: integer
-  mechSpeedChange: integer
+  static readonly TEXTURE: string = 'mech-feet'
+  static readonly ASSET: string = 'assets/img/mechfeet.png'
+  static readonly MAX_MECH_SPEED: integer = 50
+  static readonly MECH_SPEED_CHANGE: integer = 5
+  static readonly directionChangeDegrees: integer = 3
   mechSpeed: integer
   direction: integer
-  directionChangeDegrees: integer
-  scene2: Phaser.Scene
   physics: Phaser.Physics.Arcade. ArcadePhysics
+  lastFlipped: number
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, 'mech-feet')
-    this.scene2 = scene
-    this.maxMechSpeed = 50
+    super(scene, x, y, PlayerMechFeet.TEXTURE)
     this.mechSpeed = 0
     this.direction = 0
-    this.mechSpeedChange = 5
-    this.directionChangeDegrees = 3
     this.setAngle(this.direction)
     scene.add.existing(this)
     scene.physics.add.existing(this)
     this.physics = scene.physics
-
-//    this.setCollideWorldBounds(true)
+    this.lastFlipped = 0
   }
 
-  public update(cursors: Phaser.Types.Input.Keyboard.CursorKeys) {
+  public static preloadImage(preloadScene: Phaser.Scene) {
+    preloadScene.load.image(PlayerMechFeet.TEXTURE, PlayerMechFeet.ASSET)
+  }
 
-    if (cursors!.left!.isDown) {
-      this.direction -= this.directionChangeDegrees
+  public update(wKey: Phaser.Input.Keyboard.Key, aKey: Phaser.Input.Keyboard.Key, sKey: Phaser.Input.Keyboard.Key, dKey: Phaser.Input.Keyboard.Key, time: number) {
+    if (time > this.lastFlipped && this.mechSpeed > 0) {
+      let flipperFactor = this.mechSpeed / PlayerMechFeet.MAX_MECH_SPEED
+      this.lastFlipped = time + 200 - (100 * flipperFactor)
+      this.flipY = !this.flipY
+    } 
+    
+    if (aKey!.isDown) {
+      this.direction -= PlayerMechFeet.directionChangeDegrees
       this.setAngle(this.direction)
       this.physics.velocityFromAngle(this.direction, this.mechSpeed, this.body.velocity)
-    } else if (cursors!.right!.isDown) {
-      this.direction += this.directionChangeDegrees
+    } else if (dKey!.isDown) {
+      this.direction += PlayerMechFeet.directionChangeDegrees
       this.setAngle(this.direction)
       this.physics.velocityFromAngle(this.direction, this.mechSpeed, this.body.velocity)
     }
 
-    if (cursors!.up!.isDown) {
-      if (this.mechSpeed < this.maxMechSpeed) {
-        this.mechSpeed += this.mechSpeedChange
+    if (wKey!.isDown) {
+      if (this.mechSpeed < PlayerMechFeet.MAX_MECH_SPEED) {
+        this.mechSpeed += PlayerMechFeet.MECH_SPEED_CHANGE
 
         this.physics.velocityFromAngle(this.direction, this.mechSpeed, this.body.velocity)
       }
-    } else if (cursors!.down!.isDown) {
+    } else if (sKey!.isDown) {
      if (this.mechSpeed > 0) {
-       this.mechSpeed -= this.mechSpeedChange 
+       this.mechSpeed -= PlayerMechFeet.MECH_SPEED_CHANGE 
      }
      this.physics.velocityFromAngle(this.direction, this.mechSpeed, this.body.velocity)
     }

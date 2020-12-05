@@ -1,5 +1,5 @@
 import PhaserLogo from '../objects/phaserLogo'
-import FpsText from '../objects/fpsText'
+import DebugText from '../objects/debugText'
 
 export default class FightScene extends Phaser.Scene {
   fpsText: Phaser.GameObjects.Text
@@ -10,7 +10,7 @@ export default class FightScene extends Phaser.Scene {
 
   create() {
     new PhaserLogo(this, this.cameras.main.width / 2, 0)
-    this.fpsText = new FpsText(this)
+    this.fpsText = new DebugText(this)
 
     // display the Phaser.VERSION
     this.add

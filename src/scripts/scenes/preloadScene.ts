@@ -1,3 +1,8 @@
+import Turrets from '../objects/turrets'
+import PlayerMechFeet from '../objects/playerMechFeet'
+import PlayerMechBody from '../objects/playerMechBody'
+import MechCannon from '../objects/mechCannon'
+
 export default class PreloadScene extends Phaser.Scene {
   constructor() {
     super({ key: 'PreloadScene' })
@@ -6,9 +11,10 @@ export default class PreloadScene extends Phaser.Scene {
   preload() {
     this.load.image('phaser-logo', 'assets/img/phaser-logo.png')
     this.load.image('map', 'assets/img/earthbound-scarab.png')
-    this.load.image('mech-bullet', 'assets/img/bullet7.png')
-    this.load.image('mech-feet', 'assets/img/mechfeet.png')
-    this.load.image('player-mech', 'assets/img/croppedmech.png')
+    this.load.image(MechCannon.TEXTURE, MechCannon.ASSET)
+    this.load.image(PlayerMechBody.TEXTURE, PlayerMechBody.ASSET)
+    this.load.image(PlayerMechFeet.TEXTURE, PlayerMechFeet.ASSET)  
+    this.load.image(Turrets.TEXTURE, Turrets.ASSET) 
   }
 
   create() {
