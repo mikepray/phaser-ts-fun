@@ -3,8 +3,12 @@ import PlayerMechBody from '../objects/playerMechBody'
 import PlayerMechFeet from '../objects/playerMechFeet'
 import MechCannon from '../objects/mechCannon'
 import Turrets from '../objects/turrets'
+import ScreenShaker from '../objects/screenShaker'
+import Hud from '../objects/hud'
 
 export default class MainScene extends Phaser.Scene {
+  static readonly CAMERA_BOUNDS_WIDTH: integer = 1024
+  static readonly CAMERA_BOUNDS_HEIGHT: integer = 2048
   debugText: DebugText
   playerMechBody: PlayerMechBody
   playerMechFeet: PlayerMechFeet
@@ -16,17 +20,21 @@ export default class MainScene extends Phaser.Scene {
   aKey: Phaser.Input.Keyboard.Key
   sKey: Phaser.Input.Keyboard.Key
   dKey: Phaser.Input.Keyboard.Key
+  screenShaker: ScreenShaker
+  hud: Hud
 
   constructor() {
     super({ key: 'MainScene' })
   }
 
   create() {
+
+    this.debugText = new DebugText(this)
     this.add.image(0, 0, 'map').setOrigin(0).setScrollFactor(1)
-    
+    this.screenShaker = new ScreenShaker(this)
     this.playerMechFeet = new PlayerMechFeet(this, 300, 300)
-    this.playerMechBody = new PlayerMechBody(this, 300, 300)
-    this.cameras.main.setBounds(0, 0, 1024, 2048)
+    this.playerMechBody = new PlayerMechBody(this, 300, 300, this.debugText, this.screenShaker)
+    this.cameras.main.setBounds(0, 0, MainScene.CAMERA_BOUNDS_WIDTH, MainScene.CAMERA_BOUNDS_HEIGHT)
     this.cameras.main.setZoom(2)
     this.cameras.main.startFollow(this.playerMechFeet, true, 0.09, 0.09)
 
@@ -39,15 +47,18 @@ export default class MainScene extends Phaser.Scene {
 
     this.mechCannon = new MechCannon(this)
     this.turrets = new Turrets(this)
+    this.turrets.addTurrets()
 
-    //this.physics.add.collider(this.playerMechBullets, this.turrets, this.bulletHitTurret)
-    this.physics.add.overlap(this.mechCannon.bulletGroup, 
+    // overlap event when the player's mech bullets hit a turret
+    this.physics.add.overlap(
+      this.mechCannon.bulletGroup, 
       this.turrets.turretGroup, 
-      this.turretHit,
-      undefined,
-      this)
-
-    this.debugText = new DebugText(this)
+      this.turretHit)
+    
+    this.physics.add.overlap(
+      this.turrets.turretBulletGroup,
+      this.playerMechBody,
+      this.mechHit)
 
     // display the Phaser.VERSION
     this.add
@@ -56,18 +67,40 @@ export default class MainScene extends Phaser.Scene {
         fontSize: 36
       })
       .setOrigin(1, 0)
+
+      this.hud = new Hud(this, this.cameras.main, this.playerMechBody)
+  }
+
+  mechHit(mech: Phaser.GameObjects.GameObject, turretBullet: Phaser.GameObjects.GameObject) {
+    if (turretBullet.getData('canDamage')) {
+      let bulletDamage = turretBullet.data.values.damage
+      turretBullet.getData('onHit')(turretBullet)
+      mech.getData('onHit')(mech, bulletDamage)
+    }
   }
 
   turretHit(bullet: Phaser.GameObjects.GameObject, turret: Phaser.GameObjects.GameObject) {
-    bullet.getData('onHit')(bullet)
-    turret.destroy()
+    // assign off the damage ahead of time. when the bullet is destroyed, the damage is unavailable
+    if (bullet.getData('canDamage')) {
+      let bulletDamage = bullet.data.values.damage
+      bullet.getData('onHit')(bullet)
+      turret.getData('onHit')(turret, bulletDamage)
+    }
   }
 
-  update(time: number, delta: any) {
+  update(time: number, delta: number) {
+    // this.debugText.setText(`turrets left: ${this.turrets.turretGroup.children.size}`)
+    // this.debugText.setTexxt(`hp2: ${this.playerMechBody.hp}`)
     this.debugText.update(this.playerMechFeet, this.playerMechBody)
     this.playerMechFeet.update(this.wKey, this.aKey, this.sKey, this.dKey, time)
     this.playerMechBody.update(this.playerMechFeet, this.cursors)
-    this.mechCannon.update(this.fire, this.playerMechBody.angle, this.getVector(this.playerMechBody.x, this.playerMechBody.y), time)    
+    this.mechCannon.update(this.fire, 
+      this.playerMechBody.angle, 
+      this.getVector(this.playerMechBody.x, this.playerMechBody.y), 
+      time, delta)   
+    this.turrets.update(time, delta) 
+    this.screenShaker.update(time, delta)
+    this.hud.update(this.turrets.turretGroup.children.size)
   }
 
   getVector(x: number, y: number): Phaser.Math.Vector2 {
@@ -76,4 +109,5 @@ export default class MainScene extends Phaser.Scene {
     vector.y = y
     return vector
   }
+
 }

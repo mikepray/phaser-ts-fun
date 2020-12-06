@@ -1,6 +1,3 @@
-import PlayerMechBody from "./playerMechBody"
-import PlayerMech from "./playerMechBody"
-
 export default class MechCannon {
 
     static readonly TEXTURE: string = 'mech-bullet'
@@ -13,7 +10,6 @@ export default class MechCannon {
     static readonly BULLET_DAMAGE: integer = 5
     static readonly TIME_BETWEEN_FIRING: integer = 150
 
-    lifespan: number
     bulletGroup: Phaser.Physics.Arcade.Group
     scene: Phaser.Scene
     everyOtherGun: boolean
@@ -25,16 +21,24 @@ export default class MechCannon {
         this.lastFired = 0
         this.bulletGroup = scene.physics.add.group({
             maxSize: 30,
-            runChildUpdate: true,
-            createCallback: bullet => scene.physics.world.enable(bullet)
+            runChildUpdate: false
         })
     }
 
-    public update(fire: Phaser.Input.Keyboard.Key, mechAngle: number, mechPosition: Phaser.Math.Vector2, time: number) {
+    public update(fire: Phaser.Input.Keyboard.Key, mechAngle: number, mechPosition: Phaser.Math.Vector2, time: number, delta:number) {
         if (fire.isDown && time > this.lastFired) {
             this.fire(mechAngle, mechPosition)
             this.lastFired = time + MechCannon.TIME_BETWEEN_FIRING
         }
+
+        this.bulletGroup.children.entries.forEach(
+            bullet => {
+              bullet.data.values.lifespan -= delta
+              if (bullet.data.values.lifespan <= 0) {
+                bullet.setActive(false)
+              }
+            }
+          ) 
     }
 
     public fire(mechAngle: number, mechPosition: Phaser.Math.Vector2) {
@@ -44,10 +48,12 @@ export default class MechCannon {
         let velocity:Phaser.Math.Vector2 = this.getVelocity(mechAngleInRads)
 
         let bullet:Phaser.Physics.Arcade.Image = this.bulletGroup
-            .create(position.x, position.y, MechCannon.TEXTURE)
+            .get(position.x, position.y, MechCannon.TEXTURE)
 
         bullet.setData('onHit', this.onHit)
             .setData('damage', MechCannon.BULLET_DAMAGE)
+            .setData('lifespan', MechCannon.DEFAULT_LIFESPAN)
+            .setData('canDamage', true)
             .setAngle(mechAngle)
             .setVelocity(velocity.x, velocity.y)
             .setActive(true)
@@ -55,20 +61,14 @@ export default class MechCannon {
             .setScale(.7)
             .setBlendMode(1)
             .setDepth(1)
-    
-        bullet.update = this.updateBullet
-        this.lifespan = MechCannon.DEFAULT_LIFESPAN
 
         this.everyOtherGun = !this.everyOtherGun
     }
 
-    updateBullet(time:number, delta:number) {
-        // how do i access the updated bullet?
-        // this.lifespan -= delta
-
-        // if (this.lifespan <= 0) {
-
-        // }
+    public onHit(bullet: Phaser.Physics.Arcade.Image) {
+        bullet.setData('canDamage', false)
+        bullet.setActive(false)
+        bullet.setVisible(false)
     }
 
     getRotationInRads(mechAngleInRads:number): number {
@@ -97,10 +97,6 @@ export default class MechCannon {
         bulletVelocity.x = 2.5 * mechVelocity.x
         bulletVelocity.y = 2.5 * mechVelocity.y
         return bulletVelocity
-    }
-
-    public onHit(bullet: Phaser.GameObjects.GameObject) {
-        bullet.destroy()
     }
 
 }

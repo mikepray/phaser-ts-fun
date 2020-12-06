@@ -2,6 +2,7 @@ import Turrets from '../objects/turrets'
 import PlayerMechFeet from '../objects/playerMechFeet'
 import PlayerMechBody from '../objects/playerMechBody'
 import MechCannon from '../objects/mechCannon'
+import Hud from '../objects/hud'
 
 export default class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -14,7 +15,9 @@ export default class PreloadScene extends Phaser.Scene {
     this.load.image(MechCannon.TEXTURE, MechCannon.ASSET)
     this.load.image(PlayerMechBody.TEXTURE, PlayerMechBody.ASSET)
     this.load.image(PlayerMechFeet.TEXTURE, PlayerMechFeet.ASSET)  
-    this.load.image(Turrets.TEXTURE, Turrets.ASSET) 
+    this.load.image(Turrets.TURRET_TEXTURE, Turrets.TURRET_ASSET) 
+    this.load.image(Turrets.BULLET_TEXTURE, Turrets.BULLET_ASSET)
+    this.load.bitmapFont(Hud.FONT_KEY, Hud.FONT_ASSET, Hud.FONT_XML)
   }
 
   create() {
