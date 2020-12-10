@@ -15,16 +15,27 @@ export default class ScreenShaker {
       this.cameras.main.setRotation(0);
     } else {
       this.minishake(false);
+      this.bigshake(false)
     }
   }
 
   public minishake(resetTimer = true): void {
-    const shakeX = Phaser.Math.Between(-2, 2);
-    const shakeY = Phaser.Math.Between(-2, 2);
-    this.cameras.main.x = shakeX;
-    this.cameras.main.y = shakeY;
+    let shakeX = Phaser.Math.Between(-2, 2);
+    let shakeY = Phaser.Math.Between(-2, 2);
+    this.cameras.main.x = shakeX
+    this.cameras.main.y = shakeY
     if (resetTimer) {
-      this.cameraShakeTimer = 150;
+      this.cameraShakeTimer = 150
+    }
+  }
+
+  public bigshake(resetTimer = true): void { 
+    let shakeX = Phaser.Math.Between(-5, 5)
+    let shakeY = Phaser.Math.Between(-5, 5)
+    this.cameras.main.x = shakeX
+    this.cameras.main.y = shakeY
+    if (resetTimer) {
+      this.cameraShakeTimer = 1000
     }
   }
 

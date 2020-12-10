@@ -1,6 +1,8 @@
 import MainScene from "../scenes/mainScene"
+import ExplosionAnims from "./explosionAnims"
 
-export default class Turrets {
+// turrets that fire in vertical/horizontal
+export default class XYTurrets {
 
   static readonly TURRET_TEXTURE: string = 'turret'
   static readonly TURRET_ASSET: string = 'assets/img/quiltmonster.png'
@@ -15,14 +17,16 @@ export default class Turrets {
   turretGroup: Phaser.Physics.Arcade.Group
   turretBulletGroup: Phaser.Physics.Arcade.Group
   scene: Phaser.Scene
+  explosions: ExplosionAnims
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, explosions: ExplosionAnims) {
     this.scene = scene
     this.turretGroup = scene.physics.add.group()
     this.turretBulletGroup = scene.physics.add.group({
-        maxSize: 4000
+        maxSize: 2000
       }
     )
+    this.explosions = explosions
   }
 
   public addTurrets() {
@@ -38,7 +42,18 @@ export default class Turrets {
     let hp = turret.data.values.hp -= bulletDamage
     
     if (hp <= 0) {
+      turret.getData('explosions')
+      .createExplosion(turret.data.values.body.x, turret.data.values.body.y, 
+        ExplosionAnims.EXPLOSION_A, new Phaser.Math.Vector2(7, 7))
+         .play(ExplosionAnims.EXPLOSION_A)
       turret.destroy()
+    } else {
+      let damageExplosion:Phaser.GameObjects.Sprite = turret.getData('explosions')
+      .createExplosion(turret.data.values.body.x, turret.data.values.body.y, 
+        ExplosionAnims.EXPLOSION_G, new Phaser.Math.Vector2(7, 7))
+        
+       damageExplosion.setScale(.34)
+        .play(ExplosionAnims.EXPLOSION_G)
     }
   }
 
@@ -50,7 +65,7 @@ export default class Turrets {
         if (time > turret.data.values.lastFiredTime) {
           //fire
           this.fire(turret)
-          turret.data.values.lastFiredTime = time + Turrets.TIME_BETWEEN_FIRING
+          turret.data.values.lastFiredTime = time + XYTurrets.TIME_BETWEEN_FIRING
         }
       }
     ) 
@@ -86,16 +101,22 @@ export default class Turrets {
 
   createTurret(x:integer, y:integer): Phaser.Physics.Arcade.Image {
     let turret:Phaser.Physics.Arcade.Image = this.turretGroup
-      .get(x, y, Turrets.TURRET_TEXTURE)
+      .get(x, y, XYTurrets.TURRET_TEXTURE)
       .setData('onHit', this.onTurretHit)
-      .setData('hp', Turrets.MAX_HP)
+      .setData('hp', XYTurrets.MAX_HP)
       .setData('lastFiredTime', 0)
       .setActive(true)
       .setVisible(true)
       .setDepth(50)
-
-      turret.setData('body', turret.body)
       
+    turret.setData('body', turret.body)
+
+    // create explosion sprite 
+    // turret.setData('explosion', 
+    //   this.explosions.createExplosion(turret.body.x, turret.body.y, 
+    //     ExplosionAnims.EXPLOSION_A, new Phaser.Math.Vector2(7, 7)))
+      
+    turret.setData('explosions', this.explosions)
     return turret
   }
 
@@ -105,15 +126,15 @@ export default class Turrets {
       velocityX: integer, 
       velocityY: integer):void { 
     this.turretBulletGroup
-    .get(x, y, Turrets.BULLET_TEXTURE)
+    .get(x, y, XYTurrets.BULLET_TEXTURE)
     .setActive(true)
     .setVisible(true)
     .setScale(.5)
     .setBlendMode(1)
     .setDepth(1)
     .setVelocity(velocityX, velocityY)
-    .setData('lifespan', Turrets.BULLET_LIFESPAN)
-    .setData('damage', Turrets.BULLET_DAMAGE)
+    .setData('lifespan', XYTurrets.BULLET_LIFESPAN)
+    .setData('damage', XYTurrets.BULLET_DAMAGE)
     .setData('onHit', this.onHit)
     .setData('canDamage', true)
   }

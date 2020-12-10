@@ -2,9 +2,11 @@ import DebugText from '../objects/debugText'
 import PlayerMechBody from '../objects/playerMechBody'
 import PlayerMechFeet from '../objects/playerMechFeet'
 import MechCannon from '../objects/mechCannon'
-import Turrets from '../objects/turrets'
+import XYTurrets from '../objects/xyTurrets'
 import ScreenShaker from '../objects/screenShaker'
 import Hud from '../objects/hud'
+import AimTurrets from '../objects/aimTurrets'
+import ExplosionAnims from '../objects/explosionAnims'
 
 export default class MainScene extends Phaser.Scene {
   static readonly CAMERA_BOUNDS_WIDTH: integer = 1024
@@ -13,7 +15,8 @@ export default class MainScene extends Phaser.Scene {
   playerMechBody: PlayerMechBody
   playerMechFeet: PlayerMechFeet
   mechCannon: MechCannon
-  turrets: Turrets
+  xyTurrets: XYTurrets
+  aimTurrets: AimTurrets
   cursors: Phaser.Types.Input.Keyboard.CursorKeys
   fire: Phaser.Input.Keyboard.Key
   wKey: Phaser.Input.Keyboard.Key
@@ -22,18 +25,19 @@ export default class MainScene extends Phaser.Scene {
   dKey: Phaser.Input.Keyboard.Key
   screenShaker: ScreenShaker
   hud: Hud
+  explosions: ExplosionAnims
 
   constructor() {
     super({ key: 'MainScene' })
   }
 
   create() {
-
+    this.explosions = new ExplosionAnims(this)
     this.debugText = new DebugText(this)
     this.add.image(0, 0, 'map').setOrigin(0).setScrollFactor(1)
     this.screenShaker = new ScreenShaker(this)
     this.playerMechFeet = new PlayerMechFeet(this, 300, 300)
-    this.playerMechBody = new PlayerMechBody(this, 300, 300, this.debugText, this.screenShaker)
+    this.playerMechBody = new PlayerMechBody(this, 300, 300, this.debugText, this.screenShaker, this.explosions)
     this.cameras.main.setBounds(0, 0, MainScene.CAMERA_BOUNDS_WIDTH, MainScene.CAMERA_BOUNDS_HEIGHT)
     this.cameras.main.setZoom(2)
     this.cameras.main.startFollow(this.playerMechFeet, true, 0.09, 0.09)
@@ -45,18 +49,20 @@ export default class MainScene extends Phaser.Scene {
     this.sKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
     this.dKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
 
-    this.mechCannon = new MechCannon(this)
-    this.turrets = new Turrets(this)
-    this.turrets.addTurrets()
+    this.mechCannon = new MechCannon(this, this.explosions)
+    this.xyTurrets = new XYTurrets(this, this.explosions)
+    this.xyTurrets.addTurrets()
+    this.aimTurrets = new AimTurrets(this, this.debugText)
+    this.aimTurrets.addTurrets(this.playerMechBody)
 
     // overlap event when the player's mech bullets hit a turret
     this.physics.add.overlap(
       this.mechCannon.bulletGroup, 
-      this.turrets.turretGroup, 
+      this.xyTurrets.turretGroup, 
       this.turretHit)
     
     this.physics.add.overlap(
-      this.turrets.turretBulletGroup,
+      this.xyTurrets.turretBulletGroup,
       this.playerMechBody,
       this.mechHit)
 
@@ -69,6 +75,22 @@ export default class MainScene extends Phaser.Scene {
       .setOrigin(1, 0)
 
       this.hud = new Hud(this, this.cameras.main, this.playerMechBody)
+
+      /*let emitter:Phaser.GameObjects.Particles.ParticleEmitterManager = this.add.particles('flame')
+      emitter.createEmitter({
+        angle: { min: -120, max: 120 },
+        scale: { start: 1.5, end: 0.5 },
+        alpha: { start: 1, end: .5 },
+        lifespan: 400,
+        speed: { min: 20, max: 30 },
+        follow: this.playerMechBody,
+        frequency: 50,
+        quantity: 2,
+        blendMode: 'MULTIPLY'
+      });*/
+
+
+
   }
 
   mechHit(mech: Phaser.GameObjects.GameObject, turretBullet: Phaser.GameObjects.GameObject) {
@@ -97,10 +119,12 @@ export default class MainScene extends Phaser.Scene {
     this.mechCannon.update(this.fire, 
       this.playerMechBody.angle, 
       this.getVector(this.playerMechBody.x, this.playerMechBody.y), 
-      time, delta)   
-    this.turrets.update(time, delta) 
+      time, delta, this.playerMechBody)   
+    this.xyTurrets.update(time, delta) 
     this.screenShaker.update(time, delta)
-    this.hud.update(this.turrets.turretGroup.children.size)
+    this.hud.update(this.xyTurrets.turretGroup.children.size)
+    this.aimTurrets.update(time, delta, this.playerMechBody, this.debugText)
+    this.explosions.update(time, delta)
   }
 
   getVector(x: number, y: number): Phaser.Math.Vector2 {
