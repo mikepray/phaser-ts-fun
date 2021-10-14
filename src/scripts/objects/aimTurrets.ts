@@ -12,11 +12,12 @@ export default class AimTurrets {
   static readonly BULLET_TEXTURE: string = 'turret-bullet'
   // static readonly BULLET_ASSET: string = 'assets/img/bullet7.png'
   static readonly MAX_HP: integer = 25
-  static readonly TIME_BETWEEN_FIRING: integer = 200
+  static readonly TIME_BETWEEN_FIRING: integer = 85
   static readonly BULLET_LIFESPAN:integer = 2000
-  static readonly BULLET_SPEED:integer = 50
-  static readonly BULLET_DAMAGE:integer = 10
+  static readonly BULLET_SPEED:integer = 90
+  static readonly BULLET_DAMAGE:integer = 5
   static readonly TURRET_TOP_RADIUS:integer = 7
+  static readonly BURST_NUMBER:integer = 3
 
   turretBaseGroup: Phaser.Physics.Arcade.Group
   turretTopGroup: Phaser.Physics.Arcade.Group
@@ -62,7 +63,13 @@ export default class AimTurrets {
           if (time > turretTop.data.values.lastFiredTime) {
             //fire
             this.fire(turretTop, angle)
-            turretTop.data.values.lastFiredTime = time + AimTurrets.TIME_BETWEEN_FIRING
+            turretTop.data.values.burstNumber--
+            if (turretTop.data.values.burstNumber <= 0) {
+              turretTop.data.values.burstNumber = 3
+              turretTop.data.values.lastFiredTime = time + AimTurrets.TIME_BETWEEN_FIRING * 15
+            } else {
+              turretTop.data.values.lastFiredTime = time + AimTurrets.TIME_BETWEEN_FIRING
+            }
           }
         }
     )
@@ -102,7 +109,7 @@ export default class AimTurrets {
       .setActive(true)
       .setVisible(true)
       .setDepth(50)
-
+      .setScale(1.2)
       turretBase.setData('body', turretBase.body)
 
     let turretTop:Phaser.Physics.Arcade.Image = this.turretTopGroup
@@ -116,6 +123,7 @@ export default class AimTurrets {
       turretTop.setData('setTurretTopAngle', this.setTurretTopAngle)
       turretTop.setData('velocityFromAngle', this.scene.physics.velocityFromAngle)
       turretTop.setData('debugText', this.debugText)
+      turretTop.setData('burstNumber', 3)
 
       return turretBase
   }
@@ -145,7 +153,7 @@ export default class AimTurrets {
     .get(x, y, AimTurrets.BULLET_TEXTURE)
     .setActive(true)
     .setVisible(true)
-    .setScale(.5)
+    .setScale(.35)
     .setBlendMode(1)
     .setDepth(1)
     .setVelocity(velocityX, velocityY)

@@ -9,7 +9,7 @@ export default class PlayerMechBody extends Phaser.Physics.Arcade.Sprite {
   static readonly ASSET: string = 'assets/img/croppedmech.png'
   static readonly DIRECTION_CHANGE_DELTA_IN_DEGREES: integer = 3
   static readonly MAX_MECH_BODY_ROTATION: integer = 90
-  static readonly MAX_HP: integer = 50
+  static readonly MAX_HP: integer = 100
   physics: Phaser.Physics.Arcade.ArcadePhysics
   direction: integer
   debugText: DebugText
@@ -49,6 +49,9 @@ export default class PlayerMechBody extends Phaser.Physics.Arcade.Sprite {
 
   public update(mechFeet: PlayerMechFeet, cursors: Phaser.Types.Input.Keyboard.CursorKeys) {
 
+    if (!this.getData('alive')) {
+      return
+    }
     if (cursors!.left!.isDown && this.direction - PlayerMechBody.DIRECTION_CHANGE_DELTA_IN_DEGREES > -PlayerMechBody.MAX_MECH_BODY_ROTATION) {
       this.direction -= PlayerMechBody.DIRECTION_CHANGE_DELTA_IN_DEGREES
     } if (cursors!.right!.isDown && this.direction + PlayerMechBody.DIRECTION_CHANGE_DELTA_IN_DEGREES < PlayerMechBody.MAX_MECH_BODY_ROTATION) {
@@ -65,9 +68,35 @@ export default class PlayerMechBody extends Phaser.Physics.Arcade.Sprite {
     }
     if (this.getData('wasKilled')) {
       this.screenShaker.bigshake()
+      let emitter:Phaser.GameObjects.Particles.ParticleEmitterManager = this.scene.add.particles('flame')
+      emitter.createEmitter({
+        angle: { min: -180, max: 180 },
+        scale: { start: 3, end: 0.5 },
+        alpha: { start: 1, end: .5 },
+        lifespan: 1000,
+        speed: { min: 20, max: 30 },
+        follow: this,
+        frequency: 50,
+        quantity: 4,
+        blendMode: 'MULTIPLY'
+      });
       this.setData('wasKilled', false)
     }
-
+    if (this.getData('wasBloodied')) {
+      let emitter:Phaser.GameObjects.Particles.ParticleEmitterManager = this.scene.add.particles('flame')
+      emitter.createEmitter({
+        angle: { min: -120, max: 120 },
+        scale: { start: 1, end: 0.5 },
+        alpha: { start: .75, end: .5 },
+        lifespan: 200,
+        speed: { min: 10, max: 20 },
+        follow: this,
+        frequency: 25,
+        quantity: 1,
+        blendMode: 'MULTIPLY'
+      });
+      this.setData('wasBloodied', false)
+    }
   }
 
   public onHit(mech: PlayerMechBody, damage: integer, debugText:DebugText) {
@@ -86,6 +115,10 @@ export default class PlayerMechBody extends Phaser.Physics.Arcade.Sprite {
       } else {
         mech.getData('damageExplosion').setX(mech.x).setY(mech.y).setScale(.4).play(ExplosionAnims.EXPLOSION_G)
         mech.setData('wasHit', true)
+        
+        if (mech.data.values.hp / PlayerMechBody.MAX_HP < .5) {
+          mech.setData('wasBloodied', true)
+        }
       }
    }
    

@@ -65,6 +65,11 @@ export default class MainScene extends Phaser.Scene {
       this.xyTurrets.turretBulletGroup,
       this.playerMechBody,
       this.mechHit)
+    
+    this.physics.add.overlap(
+        this.aimTurrets.turretBulletGroup,
+        this.playerMechBody,
+        this.mechHit)
 
     // display the Phaser.VERSION
     this.add
@@ -114,7 +119,7 @@ export default class MainScene extends Phaser.Scene {
     // this.debugText.setText(`turrets left: ${this.turrets.turretGroup.children.size}`)
     // this.debugText.setTexxt(`hp2: ${this.playerMechBody.hp}`)
     this.debugText.update(this.playerMechFeet, this.playerMechBody)
-    this.playerMechFeet.update(this.wKey, this.aKey, this.sKey, this.dKey, time)
+    this.playerMechFeet.update(this.wKey, this.aKey, this.sKey, this.dKey, time, this.playerMechBody)
     this.playerMechBody.update(this.playerMechFeet, this.cursors)
     this.mechCannon.update(this.fire, 
       this.playerMechBody.angle, 

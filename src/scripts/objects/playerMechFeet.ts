@@ -1,3 +1,5 @@
+import PlayerMechBody from "./playerMechBody"
+
 export default class PlayerMechFeet extends Phaser.Physics.Arcade.Sprite {
 
   static readonly TEXTURE: string = 'mech-feet'
@@ -25,35 +27,46 @@ export default class PlayerMechFeet extends Phaser.Physics.Arcade.Sprite {
     preloadScene.load.image(PlayerMechFeet.TEXTURE, PlayerMechFeet.ASSET)
   }
 
-  public update(wKey: Phaser.Input.Keyboard.Key, aKey: Phaser.Input.Keyboard.Key, sKey: Phaser.Input.Keyboard.Key, dKey: Phaser.Input.Keyboard.Key, time: number) {
+  public update(wKey: Phaser.Input.Keyboard.Key, aKey: Phaser.Input.Keyboard.Key, 
+    sKey: Phaser.Input.Keyboard.Key, dKey: Phaser.Input.Keyboard.Key, time: number,
+    playerMechBody:PlayerMechBody) {
+    
     if (time > this.lastFlipped && this.mechSpeed > 0) {
       let flipperFactor = this.mechSpeed / PlayerMechFeet.MAX_MECH_SPEED
       this.lastFlipped = time + 200 - (100 * flipperFactor)
       this.flipY = !this.flipY
     } 
+
+    if (!playerMechBody.getData('alive')) {
+      if (this.mechSpeed > 0) {
+        // come to a slow halt
+        this.mechSpeed -= PlayerMechFeet.MECH_SPEED_CHANGE / 2
+      }
+      this.physics.velocityFromAngle(this.direction, this.mechSpeed, this.body.velocity)
+
+      return
+    }
     
     if (aKey!.isDown) {
       this.direction -= PlayerMechFeet.directionChangeDegrees
       this.setAngle(this.direction)
-      this.physics.velocityFromAngle(this.direction, this.mechSpeed, this.body.velocity)
     } else if (dKey!.isDown) {
       this.direction += PlayerMechFeet.directionChangeDegrees
       this.setAngle(this.direction)
-      this.physics.velocityFromAngle(this.direction, this.mechSpeed, this.body.velocity)
     }
 
     if (wKey!.isDown) {
       if (this.mechSpeed < PlayerMechFeet.MAX_MECH_SPEED) {
         this.mechSpeed += PlayerMechFeet.MECH_SPEED_CHANGE
 
-        this.physics.velocityFromAngle(this.direction, this.mechSpeed, this.body.velocity)
       }
     } else if (sKey!.isDown) {
      if (this.mechSpeed > 0) {
        this.mechSpeed -= PlayerMechFeet.MECH_SPEED_CHANGE 
      }
-     this.physics.velocityFromAngle(this.direction, this.mechSpeed, this.body.velocity)
     }
+    this.physics.velocityFromAngle(this.direction, this.mechSpeed, this.body.velocity)
+
   }
 
 }

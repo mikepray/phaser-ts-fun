@@ -9,9 +9,9 @@ export default class XYTurrets {
   static readonly BULLET_TEXTURE: string = 'turret-bullet'
   static readonly BULLET_ASSET: string = 'assets/img/bullet7.png'
   static readonly MAX_HP: integer = 25
-  static readonly TIME_BETWEEN_FIRING: integer = 800
+  static readonly TIME_BETWEEN_FIRING: integer = 1200
   static readonly BULLET_LIFESPAN:integer = 2000
-  static readonly BULLET_SPEED:integer = 50
+  static readonly BULLET_SPEED:integer = 45
   static readonly BULLET_DAMAGE:integer = 10
 
   turretGroup: Phaser.Physics.Arcade.Group
@@ -47,7 +47,7 @@ export default class XYTurrets {
         ExplosionAnims.EXPLOSION_A, new Phaser.Math.Vector2(7, 7))
          .play(ExplosionAnims.EXPLOSION_A)
       turret.destroy()
-    } else {
+    } else { 
       let damageExplosion:Phaser.GameObjects.Sprite = turret.getData('explosions')
       .createExplosion(turret.data.values.body.x, turret.data.values.body.y, 
         ExplosionAnims.EXPLOSION_G, new Phaser.Math.Vector2(7, 7))
